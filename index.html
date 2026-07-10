@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="theme-color" content="#4F46E5" />
+    <title>StudyVerse AI</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css?v=20260710" />
+  </head>
+  <body>
+    <div class="aurora"></div>
+    <div class="splash-screen" id="splashScreen">
+      <div class="logo-ring">
+        <div class="logo-core">S</div>
+      </div>
+      <h1>StudyVerse AI</h1>
+      <p>Crafting your smartest study flow</p>
+      <div class="loading-bar"><span id="loadingFill"></span></div>
+      <div class="loading-text" id="loadingText">0%</div>
+    </div>
+
+    <div class="auth-screen" id="authScreen">
+      <div class="auth-card glass-card">
+        <p class="eyebrow">Welcome aboard</p>
+        <h2>Set up your StudyVerse profile</h2>
+        <p class="muted">Personalize your smart study journey for Class 11 or 12.</p>
+        <form id="authForm" class="auth-form">
+          <input class="input" name="name" placeholder="Student name" required />
+          <select class="input" name="classLevel">
+            <option value="Class 11">Class 11</option>
+            <option value="Class 12">Class 12</option>
+          </select>
+          <select class="input" name="stream">
+            <option value="Science">Science</option>
+            <option value="Commerce">Commerce</option>
+            <option value="Arts">Arts</option>
+          </select>
+          <select class="input" name="avatar">
+            <option value="🌟">🌟 Spark</option>
+            <option value="🧠">🧠 Thinker</option>
+            <option value="📚">📚 Scholar</option>
+            <option value="⚡">⚡ Energy</option>
+          </select>
+          <label class="toggle-row"><span>Remember me</span><input type="checkbox" name="rememberMe" checked /></label>
+          <button class="primary-btn" type="submit">Continue</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="app-shell" id="appShell" hidden>
+      <header class="topbar glass-card">
+        <div>
+          <p class="eyebrow">Premium Study Companion</p>
+          <h2 id="topbarTitle">StudyVerse AI</h2>
+        </div>
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">☀️</button>
+      </header>
+
+      <main class="main-content">
+        <section class="view active" id="view-home">
+          <div class="hero glass-card">
+            <div>
+              <p class="eyebrow">Good Morning</p>
+              <h3 id="studentGreeting">Student</h3>
+              <p class="muted" id="heroSubtitle">You’ve got a focused day ahead.</p>
+            </div>
+            <div class="hero-badge">🔥 <span id="streakValue">0</span> day streak</div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card glass-card">
+              <span>Level</span>
+              <strong id="levelValue">1</strong>
+            </div>
+            <div class="stat-card glass-card">
+              <span>Today’s Goal</span>
+              <strong id="goalValue">3 sessions</strong>
+            </div>
+            <div class="stat-card glass-card">
+              <span>XP</span>
+              <strong id="xpValue">0</strong>
+            </div>
+          </div>
+
+          <div class="glass-card section-card">
+            <div class="section-heading">
+              <h4>Progress Snapshot</h4>
+              <span class="pill">Live</span>
+            </div>
+            <div class="progress-stack">
+              <div class="progress-row">
+                <label>Revision Progress</label>
+                <div class="bar"><span id="revisionBar"></span></div>
+              </div>
+              <div class="progress-row">
+                <label>Daily Focus</label>
+                <div class="bar"><span id="focusBar"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card section-card">
+            <div class="section-heading">
+              <h4>Daily Goals</h4>
+              <span class="pill accent" id="dailyGoalStatus">On track</span>
+            </div>
+            <div class="goal-stack">
+              <div class="goal-row">
+                <span>Study sessions</span>
+                <strong id="goalSessions">0 / 3</strong>
+              </div>
+              <div class="goal-row">
+                <span>Revision chapters</span>
+                <strong id="goalRevision">0 / 2</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card section-card">
+            <div class="section-heading">
+              <h4>Today’s Challenges</h4>
+              <span class="pill">Daily</span>
+            </div>
+            <div id="challengesList"></div>
+          </div>
+
+          <div class="glass-card section-card">
+            <div class="section-heading">
+              <h4>Smart Revision Tips</h4>
+              <span class="pill accent">Adaptive</span>
+            </div>
+            <div id="revisionTips"></div>
+          </div>
+
+          <div class="glass-card section-card">
+            <div class="section-heading">
+              <h4>Quick Actions</h4>
+              <span class="pill accent">Boost mode</span>
+            </div>
+            <div class="quick-actions">
+              <button class="action-btn" data-target="subjects">📚 Subjects</button>
+              <button class="action-btn" data-target="revision">📝 Revise</button>
+              <button class="action-btn" data-target="study">⏱️ Focus</button>
+              <button class="action-btn" data-target="calendar">📅 Calendar</button>
+              <button class="action-btn" data-target="quiz" disabled style="opacity:0.6; cursor:not-allowed;">🧠 Quiz (Jan 2027)</button>
+              <button class="action-btn" data-target="planner">🗂️ Planner</button>
+            </div>
+          </div>
+
+          <div class="glass-card section-card notice-card">
+            <div class="section-heading">
+              <h4>Upcoming Feature</h4>
+              <span class="pill">Jan 2027</span>
+            </div>
+            <p class="muted">Quiz mode will be available in January 2027. Stay tuned for the launch.</p>
+          </div>
+
+          <div class="glass-card section-card">
+            <div class="section-heading">
+              <h4>Today’s Motivation</h4>
+            </div>
+            <p id="quoteText" class="quote"></p>
+            <div class="subtle-row">
+              <span>Upcoming Exam</span>
+              <strong id="examValue">Physics Test</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-subjects">
+          <div class="section-heading">
+            <h3>Subjects</h3>
+            <span class="pill">Custom</span>
+          </div>
+          <div class="glass-card section-card">
+            <h4>Add Subject</h4>
+            <div class="subject-form">
+              <input id="subjectNameInput" class="input" placeholder="Enter subject name" />
+              <button class="primary-btn" id="addSubjectBtn">Add Subject</button>
+            </div>
+          </div>
+          <div class="subjects-grid" id="subjectsGrid"></div>
+        </section>
+
+        <section class="view" id="view-revision">
+          <div class="section-heading">
+            <h3>Smart Revision</h3>
+            <span class="pill accent">One tap</span>
+          </div>
+          <div class="chip-grid" id="chipGrid"></div>
+          <div class="glass-card section-card">
+            <h4>Revision Focus</h4>
+            <p class="muted">Pick a mode and start your high-impact study sprint.</p>
+            <button class="primary-btn" id="revisionStartBtn">Start Quick Revision</button>
+          </div>
+          <div class="glass-card section-card">
+            <h4>Revision Queue</h4>
+            <div id="revisionQueue"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-calendar">
+          <div class="section-heading">
+            <h3>Calendar</h3>
+            <span class="pill accent">Beautiful planner</span>
+          </div>
+          <div class="glass-card section-card calendar-card">
+            <div class="calendar-header">
+              <button class="secondary-btn" id="prevMonthBtn">←</button>
+              <div>
+                <h4 id="calendarMonthLabel">June 2026</h4>
+                <p class="muted">Study goals, celebrations, and important dates</p>
+              </div>
+              <button class="secondary-btn" id="nextMonthBtn">→</button>
+            </div>
+            <div class="calendar-weekdays">
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+            <div class="calendar-footer">
+              <div class="calendar-badge special">🎂 Anushka’s Special Birthday • June 26</div>
+              <div id="calendarEventList" class="calendar-event-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-study">
+          <div class="section-heading">
+            <h3>Study Session</h3>
+            <span class="pill">Pomodoro</span>
+          </div>
+          <div class="timer-card glass-card">
+            <div class="ring" id="timerRing">
+              <div class="ring-content">
+                <strong id="timerDisplay">25:00</strong>
+                <span id="timerLabel">Focus Sprint</span>
+              </div>
+            </div>
+            <div class="timer-options">
+              <button class="chip" data-minutes="25">25 min</button>
+              <button class="chip" data-minutes="45">45 min</button>
+              <button class="chip" data-minutes="60">60 min</button>
+              <button class="chip" data-minutes="0">Custom</button>
+            </div>
+            <div class="button-row">
+              <button class="primary-btn" id="startSessionBtn">Start</button>
+              <button class="secondary-btn" id="resetSessionBtn">Reset</button>
+            </div>
+            <div class="subtle-row">
+              <span>Ambient Sound</span>
+              <button class="icon-btn" id="soundToggle">🔊</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-quiz">
+          <div class="section-heading">
+            <h3>Quiz Module</h3>
+            <span class="pill success">Live</span>
+          </div>
+          <div id="quizCard" class="glass-card section-card"></div>
+          <div id="leaderboardList" class="leaderboard-list glass-card section-card"></div>
+          <div class="leaderboard glass-card section-card">
+            <h4>Tip</h4>
+            <p class="muted">The quiz experience will launch in January 2027.</p>
+          </div>
+        </section>
+
+        <section class="view" id="view-flashcards">
+          <div class="section-heading">
+            <h3>Flash Cards</h3>
+            <span class="pill">Swipe ready</span>
+          </div>
+          <div class="flash-card glass-card" id="flashCard"></div>
+          <div class="button-row">
+            <button class="secondary-btn" id="prevCardBtn">← Prev</button>
+            <button class="primary-btn" id="flipCardBtn">Flip</button>
+            <button class="secondary-btn" id="nextCardBtn">Next →</button>
+          </div>
+          <div class="button-row compact">
+            <button class="chip" id="bookmarkBtn">🔖 Bookmark</button>
+            <button class="chip" id="shuffleBtn">🎲 Shuffle</button>
+            <button class="chip" id="favoriteBtn">⭐ Favorite</button>
+          </div>
+        </section>
+
+        <section class="view" id="view-notes">
+          <div class="section-heading">
+            <h3>Notes</h3>
+            <span class="pill">Auto save</span>
+          </div>
+          <div class="glass-card section-card">
+            <input id="noteTitle" class="input" placeholder="Title" />
+            <textarea id="noteText" class="textarea" placeholder="Write your ideas..."></textarea>
+            <div class="button-row">
+              <select id="noteColor" class="input">
+                <option value="#4F46E5">Indigo</option>
+                <option value="#06B6D4">Cyan</option>
+                <option value="#F59E0B">Amber</option>
+                <option value="#22C55E">Green</option>
+              </select>
+              <button class="primary-btn" id="saveNoteBtn">Save Note</button>
+              <button class="secondary-btn" id="exportNotesBtn">Export</button>
+            </div>
+          </div>
+          <input id="noteSearch" class="input" placeholder="Search notes" />
+          <div id="notesList" class="notes-list"></div>
+        </section>
+
+        <section class="view" id="view-planner">
+          <div class="section-heading">
+            <h3>Planner</h3>
+            <span class="pill">Daily focus</span>
+          </div>
+          <div class="glass-card section-card">
+            <input id="plannerTask" class="input" placeholder="Add task" />
+            <input id="plannerDate" class="input" type="date" />
+            <div class="button-row">
+              <button class="primary-btn" id="saveTaskBtn">Add Task</button>
+            </div>
+          </div>
+          <div id="plannerList" class="planner-list"></div>
+        </section>
+
+        <section class="view" id="view-analytics">
+          <div class="section-heading">
+            <h3>Analytics</h3>
+            <span class="pill">Weekly clarity</span>
+          </div>
+          <div class="analytics-grid">
+            <div class="glass-card section-card">
+              <div class="ring small" id="hourRing">
+                <div class="ring-content">
+                  <strong id="hoursValue">12h</strong>
+                  <span>Study Hours</span>
+                </div>
+              </div>
+            </div>
+            <div class="glass-card section-card">
+              <h4>Subject Performance</h4>
+              <div id="subjectBars"></div>
+            </div>
+          </div>
+          <div class="glass-card section-card">
+            <h4>Mastery Breakdown</h4>
+            <div id="masteryBars"></div>
+          </div>
+          <div class="glass-card section-card">
+            <h4>Recent Sessions</h4>
+            <div id="sessionHistory" class="session-history"></div>
+          </div>
+          <div class="glass-card section-card">
+            <h4>Weekly Graph</h4>
+            <div class="graph" id="graphBars"></div>
+            <div class="graph-labels">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
+            </div>
+          </div>
+          <div class="glass-card section-card">
+            <h4>Study Heatmap</h4>
+            <div id="heatmapGrid" class="heatmap-grid"></div>
+            <div class="heatmap-labels">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-achievements">
+          <div class="section-heading">
+            <h3>Achievements</h3>
+            <span class="pill accent">Unlocked</span>
+          </div>
+          <div id="achievementsGrid" class="achievements-grid"></div>
+        </section>
+
+        <section class="view" id="view-profile">
+          <div class="glass-card profile-card section-card">
+            <div class="avatar-large" id="profileAvatar">😊</div>
+            <h3 id="profileName">Student</h3>
+            <p class="muted" id="profileMeta">Class 12 • Science</p>
+            <div class="stats-grid compact">
+              <div class="stat-card glass-card">
+                <span>Level</span>
+                <strong id="profileLevel">1</strong>
+              </div>
+              <div class="stat-card glass-card">
+                <span>XP</span>
+                <strong id="profileXP">0</strong>
+              </div>
+            </div>
+            <button class="primary-btn" id="editProfileBtn">Edit Profile</button>
+          </div>
+        </section>
+
+        <section class="view" id="view-settings">
+          <div class="section-heading">
+            <h3>Settings</h3>
+            <span class="pill">Personalize</span>
+          </div>
+          <div class="glass-card section-card">
+            <label class="toggle-row"><span>Dark Mode</span><input type="checkbox" id="darkModeToggle" /></label>
+            <label class="toggle-row"><span>Notifications</span><input type="checkbox" id="notifyToggle" /></label>
+            <label class="toggle-row"><span>Sound Effects</span><input type="checkbox" id="soundToggleSetting" /></label>
+            <label class="toggle-row"><span>Animations</span><input type="checkbox" id="animationToggle" /></label>
+            <label class="toggle-row"><span>Focus Mode</span><input type="checkbox" id="focusModeToggle" /></label>
+            <label class="toggle-row"><span>Study Reminders</span><input type="checkbox" id="reminderToggle" /></label>
+            <button class="primary-btn" id="guideBtn">Guide</button>
+            <button class="danger-btn" id="resetBtn">Reset Data</button>
+          </div>
+          <div class="glass-card section-card" id="guideCard" hidden>
+            <div class="section-heading">
+              <h4>How StudyVerse works</h4>
+              <span class="pill accent">Quick guide</span>
+            </div>
+            <div class="guide-list">
+              <div class="guide-item">
+                <strong>1. Start with subjects</strong>
+                <p class="muted">Add your subjects and chapters from the Subjects tab to build your study plan.</p>
+              </div>
+              <div class="guide-item">
+                <strong>2. Use the focus timer</strong>
+                <p class="muted">Open Focus and start a Pomodoro session to study without distractions.</p>
+              </div>
+              <div class="guide-item">
+                <strong>3. Revise smartly</strong>
+                <p class="muted">Use Revision to choose a mode, review pending chapters, and quickly revisit weak topics.</p>
+              </div>
+              <div class="guide-item">
+                <strong>4. Track progress</strong>
+                <p class="muted">Check Analytics to see study hours, subject progress, and recent sessions.</p>
+              </div>
+              <div class="guide-item">
+                <strong>5. Keep notes and planner updated</strong>
+                <p class="muted">Save ideas, tasks, and deadlines so your study routine stays organized.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav glass-card">
+        <button class="nav-item active" data-target="home">🏠<span>Home</span></button>
+        <button class="nav-item" data-target="subjects">📚<span>Subjects</span></button>
+        <button class="nav-item" data-target="revision">📝<span>Revision</span></button>
+        <button class="nav-item" data-target="analytics">📊<span>Analytics</span></button>
+        <button class="nav-item" data-target="settings">⚙️<span>Settings</span></button>
+      </nav>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <div id="confettiLayer" class="confetti-layer"></div>
+
+    <script src="script.js?v=20260710"></script>
+  </body>
+</html>

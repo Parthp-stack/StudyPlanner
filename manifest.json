@@ -1,0 +1,9 @@
+{
+  "name": "StudyVerse AI",
+  "short_name": "StudyVerse",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#4F46E5",
+  "description": "Smart mobile-first study app for Class 11 and Class 12 students"
+}
