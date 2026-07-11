@@ -7,6 +7,8 @@ const STORAGE_KEYS = {
   subjects: 'studyverse-subjects'
 };
 
+const LAUNCH_NOTICE_KEY = 'studyverse-launch-notice-shown';
+
 const defaultSubjects = [
   { id: 'maths', name: 'Maths', chapters: [
     { id: 'math-1', title: 'Calculus', completed: true },
@@ -72,6 +74,12 @@ const state = {
   calendar: { currentDate: new Date(2026, 5, 1) }
 };
 
+let profileAvatarDraft = null;
+
+function getProfileStyleClass() {
+  return state.user?.style || 'calm';
+}
+
 const calendarEvents = [
   { date: '2026-06-26', title: "Anushka's Special Birthday", note: 'Celebrate with a joyful study break and a favorite treat.', type: 'special' },
   { date: '2026-06-28', title: 'Revision Sprint', note: 'Revisit weak chapters for 25 minutes.', type: 'study' },
@@ -81,6 +89,7 @@ const calendarEvents = [
 function init() {
   bindEvents();
   preloadApp();
+  showLaunchNotice();
   applyTheme();
   renderAll();
   registerServiceWorker();
@@ -107,7 +116,7 @@ function showAppShell() {
     document.getElementById('authScreen').style.display = 'grid';
   } else {
     document.getElementById('authScreen').style.display = 'none';
-    showToast('Welcome to StudyVerse AI');
+    showToast('Welcome to Anushka Study Studio');
   }
   setView('home');
 }
@@ -200,14 +209,53 @@ function bindEvents() {
     }
   });
   document.getElementById('saveTaskBtn').addEventListener('click', saveTask);
-  document.getElementById('editProfileBtn').addEventListener('click', () => {
-    const name = prompt('Enter your name', state.user?.name || 'Student');
-    if (name) {
-      state.user.name = name;
-      saveState();
-      renderAll();
-      showToast('Profile updated');
+  document.getElementById('profileAvatarInput').addEventListener('change', handleProfileAvatarSelection);
+  document.getElementById('cropAvatarBtn').addEventListener('click', () => transformProfileAvatar('crop'));
+  document.getElementById('resizeAvatarBtn').addEventListener('click', () => transformProfileAvatar('resize'));
+  document.getElementById('removeAvatarBtn').addEventListener('click', removeProfileAvatar);
+  document.getElementById('saveProfileBtn').addEventListener('click', () => {
+    const name = document.getElementById('profileNameInput').value.trim();
+    const bio = document.getElementById('profileBioInput').value.trim();
+    const style = document.getElementById('profileStyleSelect').value;
+    if (name) state.user.name = name;
+    if (bio) state.user.bio = bio;
+    state.user.style = style;
+
+    if (profileAvatarDraft) {
+      state.user.avatar = profileAvatarDraft;
     }
+
+    saveState();
+    renderProfile();
+    renderHome();
+    showToast('Profile updated');
+  });
+  document.getElementById('profileDarkToggle').addEventListener('change', (e) => {
+    state.settings.dark = e.target.checked;
+    applyTheme();
+    saveState();
+  });
+  document.getElementById('profileNotifyToggle').addEventListener('change', (e) => {
+    state.settings.notifications = e.target.checked;
+    saveState();
+  });
+  document.getElementById('profileSoundToggle').addEventListener('change', (e) => {
+    state.settings.sound = e.target.checked;
+    saveState();
+  });
+  document.getElementById('profileAnimationToggle').addEventListener('change', (e) => {
+    state.settings.animations = e.target.checked;
+    applyTheme();
+    saveState();
+  });
+  document.getElementById('profileFocusToggle').addEventListener('change', (e) => {
+    state.settings.focusMode = e.target.checked;
+    applyTheme();
+    saveState();
+  });
+  document.getElementById('profileReminderToggle').addEventListener('change', (e) => {
+    state.settings.reminders = e.target.checked;
+    saveState();
   });
   document.getElementById('authForm').addEventListener('submit', (event) => {
     event.preventDefault();
@@ -331,6 +379,36 @@ function renderAll() {
   saveState();
 }
 
+function renderStreakRewards() {
+  const container = document.getElementById('streakRewards');
+  const badgeLabel = document.getElementById('streakBadgeLabel');
+  if (!container || !badgeLabel) return;
+
+  const milestone = state.progress.streak >= 7 ? 'Focused' : state.progress.streak >= 3 ? 'Building' : 'Starter';
+  const nextMilestone = state.progress.streak >= 7 ? '7-day streak completed' : state.progress.streak >= 3 ? '3-day streak completed' : '3-day streak target';
+  const progress = Math.min(100, (state.progress.streak / 7) * 100);
+
+  badgeLabel.textContent = milestone;
+  badgeLabel.className = `pill ${state.progress.streak >= 7 ? 'success' : 'accent'}`;
+
+  container.innerHTML = `
+    <div class="streak-ring">
+      <div class="streak-ring-inner">${state.progress.streak}</div>
+    </div>
+    <div class="streak-info">
+      <p class="muted">Current streak</p>
+      <strong>${state.progress.streak} days</strong>
+      <div class="bar"><span style="width:${progress}%"></span></div>
+      <p class="muted">Next reward: ${nextMilestone}</p>
+      <div class="badge-row">
+        <span class="badge-chip ${state.progress.streak >= 1 ? 'earned' : ''}">🌱 Day 1</span>
+        <span class="badge-chip ${state.progress.streak >= 3 ? 'earned' : ''}">⚡ 3 Days</span>
+        <span class="badge-chip ${state.progress.streak >= 7 ? 'earned' : ''}">🔥 7 Days</span>
+      </div>
+    </div>
+  `;
+}
+
 function renderHome() {
   const greeting = document.getElementById('studentGreeting');
   const subtitle = document.getElementById('heroSubtitle');
@@ -364,7 +442,8 @@ function renderHome() {
   dailyGoalStatus.textContent = goalComplete ? 'Completed' : 'On track';
   dailyGoalStatus.className = `pill ${goalComplete ? 'success' : 'accent'}`;
   subtitle.textContent = state.settings.focusMode ? 'Focus mode is on. Keep distractions low.' : `You’re ${state.progress.revision}% ready for your next milestone.`;
-  document.getElementById('topbarTitle').textContent = `StudyVerse AI • ${name}`;
+  document.getElementById('topbarTitle').textContent = `Anushka Study Studio • ${name}`;
+  renderStreakRewards();
 }
 
 function renderSubjects() {
@@ -748,12 +827,94 @@ function renderAchievements() {
   `).join('');
 }
 
+function showLaunchNotice() {
+  if (localStorage.getItem(LAUNCH_NOTICE_KEY)) return;
+  const message = 'This app currently uses local browser storage only and does not support a database yet. Full database support will be added in a future update.';
+  window.alert(message);
+  localStorage.setItem(LAUNCH_NOTICE_KEY, '1');
+  showToast('Local-only mode • database support coming soon');
+}
+
+function handleProfileAvatarSelection(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      profileAvatarDraft = reader.result;
+      renderProfile();
+      showToast('Image ready. Use crop or resize, then save.');
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function transformProfileAvatar(mode) {
+  if (!profileAvatarDraft) {
+    showToast('Choose an image first');
+    return;
+  }
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    if (mode === 'crop') {
+      const size = Math.min(img.width, img.height);
+      const sx = (img.width - size) / 2;
+      const sy = (img.height - size) / 2;
+      canvas.width = 256;
+      canvas.height = 256;
+      ctx.drawImage(img, sx, sy, size, size, 0, 0, 256, 256);
+    } else {
+      const scale = Math.min(1, 220 / Math.max(img.width, img.height));
+      canvas.width = Math.max(80, Math.round(img.width * scale));
+      canvas.height = Math.max(80, Math.round(img.height * scale));
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    }
+    profileAvatarDraft = canvas.toDataURL('image/jpeg', 0.92);
+    renderProfile();
+    showToast(mode === 'crop' ? 'Image cropped' : 'Image resized');
+  };
+  img.src = profileAvatarDraft;
+}
+
+function removeProfileAvatar() {
+  profileAvatarDraft = null;
+  state.user.avatar = '';
+  document.getElementById('profileAvatarInput').value = '';
+  saveState();
+  renderProfile();
+  renderHome();
+  showToast('Image removed');
+}
+
 function renderProfile() {
-  document.getElementById('profileAvatar').textContent = state.user?.avatar || '😊';
+  const avatarEl = document.getElementById('profileAvatar');
+  const previewSource = profileAvatarDraft || state.user?.avatar;
+  if (previewSource && previewSource.startsWith('data:image')) {
+    avatarEl.innerHTML = `<img src="${previewSource}" alt="Profile" />`;
+  } else {
+    avatarEl.innerHTML = state.user?.avatar || '😊';
+  }
   document.getElementById('profileName').textContent = state.user?.name || 'Student';
   document.getElementById('profileMeta').textContent = `${state.user?.class || 'Class 11'} • ${state.user?.stream || 'Science'}`;
+  document.getElementById('profileBio').textContent = state.user?.bio || 'Focused, calm, and ready to learn.';
   document.getElementById('profileLevel').textContent = state.progress.level;
   document.getElementById('profileXP').textContent = state.progress.xp;
+  document.getElementById('profileNameInput').value = state.user?.name || '';
+  document.getElementById('profileBioInput').value = state.user?.bio || '';
+  document.getElementById('profileStyleSelect').value = state.user?.style || 'calm';
+  document.getElementById('profileDarkToggle').checked = state.settings.dark;
+  document.getElementById('profileNotifyToggle').checked = state.settings.notifications;
+  document.getElementById('profileSoundToggle').checked = state.settings.sound;
+  document.getElementById('profileAnimationToggle').checked = state.settings.animations;
+  document.getElementById('profileFocusToggle').checked = state.settings.focusMode;
+  document.getElementById('profileReminderToggle').checked = state.settings.reminders;
+  document.body.classList.remove('style-calm', 'style-energetic', 'style-minimal');
+  document.body.classList.add(`style-${getProfileStyleClass()}`);
 }
 
 function renderSettings() {
@@ -911,7 +1072,7 @@ function setView(view) {
   document.getElementById(`view-${view}`).classList.add('active');
   document.querySelectorAll('.nav-item').forEach((btn) => btn.classList.toggle('active', btn.dataset.target === view));
   state.currentView = view;
-  document.getElementById('topbarTitle').textContent = `StudyVerse AI • ${view}`;
+  document.getElementById('topbarTitle').textContent = `Anushka Study Studio • ${view}`;
 }
 
 function applyTheme() {
